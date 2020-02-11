@@ -12,13 +12,4 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class MallApplicationTests {
 
-    @Autowired
-    private CategoryMapper categoryMapper;
-
-    @Test
-    public void contextLoads() {
-        Category byName = categoryMapper.findByName(100001);
-        System.out.print(byName.toString());
-    }
-
 }
