@@ -11,8 +11,8 @@ public interface IUserSerivce {
 
     /**
      * 登陆
-     * @param user
+     * @param
      */
-    void login(User user);
+    ResponseVo<User> login(String username,String password);
 
 }

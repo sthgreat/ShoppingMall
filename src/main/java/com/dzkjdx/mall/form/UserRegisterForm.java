@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 @Data
-public class UserForm {
+public class UserRegisterForm {
     @NotBlank(message = "用户名不能为空") //用于string，判断空格
     //@NotEmpty 用于集合
     //NotNull 是否为null

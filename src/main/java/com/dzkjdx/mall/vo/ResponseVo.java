@@ -1,6 +1,7 @@
 package com.dzkjdx.mall.vo;
 
 import com.dzkjdx.mall.enums.ResponseEnum;
+import com.dzkjdx.mall.pojo.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.springframework.validation.BindingResult;
@@ -20,14 +21,24 @@ public class ResponseVo<T> {
         this.msg = msg;
     }
 
+    public ResponseVo(Integer status, T data){
+        this.status = status;
+        this.data = data;
+    }
+
     public ResponseVo(Integer status, String msg, T data) {
         this.status = status;
         this.msg = msg;
         this.data = data;
     }
 
-    public static <T> ResponseVo<T> success(String msg){
+
+    public static <T> ResponseVo<T> successByMsg(String msg){
         return new ResponseVo<>(ResponseEnum.SUCCESS.getCode(),msg);
+    }
+
+    public static <T> ResponseVo<T> success(T data){
+        return new ResponseVo<>(ResponseEnum.SUCCESS.getCode(), data);
     }
 
     public static <T> ResponseVo<T> success(){
