@@ -1,10 +1,8 @@
-package com.dzkjdx.mall;
+package com.dzkjdx.mall.interceptor;
 
 import com.dzkjdx.mall.consts.MallConst;
-import com.dzkjdx.mall.enums.ResponseEnum;
 import com.dzkjdx.mall.exception.UserLoginException;
 import com.dzkjdx.mall.pojo.User;
-import com.dzkjdx.mall.vo.ResponseVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 

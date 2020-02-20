@@ -2,16 +2,21 @@ package com.dzkjdx.mall.pojo;
 
 import lombok.Data;
 
-import java.sql.Date;
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
 public class Category {
     private Integer id;
+
     private Integer parentId;
+
     private String name;
-    private Integer status;
+
+    private Boolean status;
+
     private Integer sortOrder;
+
     private Date createTime;
+
     private Date updateTime;
 }
