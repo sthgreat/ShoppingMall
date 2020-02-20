@@ -52,19 +52,28 @@ public class UserController {
             return ResponseVo.error(ResponseEnum.PARAM_ERROR, bindingResult);
         }
         ResponseVo<User> userResponseVo = userSerivce.login(userLoginForm.getUsername(), userLoginForm.getPassword());
-        //设置session
+        //设置session，保存在内存中，也可保存到redis中
         HttpSession session = httpServletRequest.getSession();
         session.setAttribute(MallConst.CURRENT_USER, userResponseVo.getData());
+        log.info("/login,sessionId={}",session.getId());
 
         return userResponseVo;
     }
 
     @GetMapping("/user")
     public ResponseVo<User> userInfo(HttpSession session){
+        log.info("/user,sessionId={}",session.getId());
         User user = (User) session.getAttribute(MallConst.CURRENT_USER);
-        if(user == null){
-            return ResponseVo.error(ResponseEnum.NEED_LOGIN);
-        }
+
         return ResponseVo.success(user);
+    }
+
+    //TODO 判断登录状态
+    @PostMapping("/user/logout")
+    public ResponseVo logout(HttpSession session){
+        log.info("/user/logout,sessionId={}",session.getId());
+
+        session.removeAttribute(MallConst.CURRENT_USER);
+        return ResponseVo.success();
     }
 }

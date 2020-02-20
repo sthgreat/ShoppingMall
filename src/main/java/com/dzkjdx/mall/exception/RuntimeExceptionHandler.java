@@ -14,4 +14,9 @@ public class RuntimeExceptionHandler {
     public ResponseVo handle(RuntimeException e){//捕获到异常后传入进来
         return ResponseVo.error(ResponseEnum.ERROR, e.getMessage());
     }
+
+    @ExceptionHandler(UserLoginException.class)
+    public ResponseVo UserLoginHandle(){
+        return ResponseVo.error(ResponseEnum.NEED_LOGIN);
+    }
 }
