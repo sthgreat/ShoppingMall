@@ -187,4 +187,11 @@
       </foreach>
     </if>
   </select>
+
+  <select id="selectByCategoryId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mall_product
+    where category_id = #{categoryId,jdbcType=INTEGER}
+  </select>
 </mapper>

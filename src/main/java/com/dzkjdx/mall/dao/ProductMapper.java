@@ -3,6 +3,7 @@ package com.dzkjdx.mall.dao;
 import com.dzkjdx.mall.pojo.Category;
 import com.dzkjdx.mall.pojo.Product;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,4 +24,6 @@ public interface ProductMapper {
     int updateByPrimaryKey(Product record);
 
     List<Product> selectByCategoryIdSet(@Param("categoryIdSet") Set<Integer> categoryIdSet);
+
+    Product selectByCategoryId(Integer categoryId);
 }

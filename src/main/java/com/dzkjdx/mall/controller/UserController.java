@@ -26,15 +26,8 @@ public class UserController {
     private IUserSerivce userSerivce;
 
     @PostMapping("/user/register")
-    public ResponseVo register(@Valid @RequestBody UserRegisterForm userRegisterForm,
-                               BindingResult bindingResult){
+    public ResponseVo register(@Valid @RequestBody UserRegisterForm userRegisterForm){
         log.info("username:"+ userRegisterForm.getUsername());
-        if(bindingResult.hasErrors()){
-            log.error("注册提交参数有误：{} {}",
-                    Objects.requireNonNull(bindingResult.getFieldError()).getField(),
-                    bindingResult.getFieldError().getDefaultMessage());
-            return ResponseVo.error(ResponseEnum.PARAM_ERROR, bindingResult);
-        }
 
         User user = new User();
         BeanUtils.copyProperties(userRegisterForm, user);
@@ -43,14 +36,7 @@ public class UserController {
 
     @PostMapping("/user/login")
     public ResponseVo login(@Valid @RequestBody UserLoginForm userLoginForm,
-                            BindingResult bindingResult,
                             HttpServletRequest httpServletRequest){
-        if(bindingResult.hasErrors()){
-            log.error("登陆提交参数有误：{} {}",
-                    Objects.requireNonNull(bindingResult.getFieldError()).getField(),
-                    bindingResult.getFieldError().getDefaultMessage());
-            return ResponseVo.error(ResponseEnum.PARAM_ERROR, bindingResult);
-        }
         ResponseVo<User> userResponseVo = userSerivce.login(userLoginForm.getUsername(), userLoginForm.getPassword());
         //设置session，保存在内存中，也可保存到redis中
         HttpSession session = httpServletRequest.getSession();
