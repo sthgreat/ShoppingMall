@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class MyCategoryService implements ICategoryService {
@@ -34,6 +35,22 @@ public class MyCategoryService implements ICategoryService {
         findSubCategory(categories ,resultVo);
 
         return ResponseVo.success(resultVo);
+    }
+
+    @Override
+    public void findSubCategoryId(Integer id, Set<Integer> resultSet) {
+        List<Category> categories = categoryMapper.selectCategories();
+        findSubCategoryId(categories, id, resultSet);
+    }
+
+    private void findSubCategoryId(List<Category> categories, Integer id, Set<Integer> resultSet){
+        for(Category category : categories){
+            if(category.getParentId().equals(id)){
+                resultSet.add(category.getId());
+
+                findSubCategoryId(categories, category.getId(),resultSet);
+            }
+        }
     }
 
     private void findSubCategory(List<Category> categoryList, ArrayList<CategoryVo> resultVo){
