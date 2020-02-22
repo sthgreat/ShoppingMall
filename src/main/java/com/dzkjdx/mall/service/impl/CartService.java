@@ -132,6 +132,7 @@ public class CartService implements ICartService {
         String redisKey = (String.format(CART_REDIS_KEY_TEMPLATE,uid));
         //取出值进行判断
         String value = opsForHash.get(redisKey, String.valueOf(productId));
+        log.info("update== value:{} rediskey:{} productId:{}",value,redisKey,productId);
         if(StringUtil.isEmpty(value)){
             //redis中没有该商品，报错
             return ResponseVo.error(ResponseEnum.CART_PRODUCT_NOT_EXSIST);
@@ -162,5 +163,47 @@ public class CartService implements ICartService {
         }
         opsForHash.delete(redisKey, String.valueOf(productId));
         return list(uid);
+    }
+
+    @Override
+    public ResponseVo<CartVo> selectAll(Integer uid) {
+        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
+        String redisKey = (String.format(CART_REDIS_KEY_TEMPLATE,uid));
+        Map<String, String> entries = opsForHash.entries(redisKey);
+
+        for(Map.Entry<String, String> entry : entries.entrySet()){
+            Cart cart = gson.fromJson(entry.getValue(), Cart.class);
+            cart.setProductSelected(true);
+            opsForHash.put(redisKey, String.valueOf(cart.getProductId()), gson.toJson(cart));
+        }
+        return ResponseVo.success();
+    }
+
+    @Override
+    public ResponseVo<CartVo> unSelectAll(Integer uid) {
+        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
+        String redisKey = (String.format(CART_REDIS_KEY_TEMPLATE,uid));
+        Map<String, String> entries = opsForHash.entries(redisKey);
+
+        for(Map.Entry<String, String> entry : entries.entrySet()){
+            Cart cart = gson.fromJson(entry.getValue(), Cart.class);
+            cart.setProductSelected(false);
+            opsForHash.put(redisKey, String.valueOf(cart.getProductId()), gson.toJson(cart));
+        }
+        return ResponseVo.success();
+    }
+
+    @Override
+    public ResponseVo<Integer> sum(Integer uid) {
+        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
+        String redisKey = (String.format(CART_REDIS_KEY_TEMPLATE,uid));
+        Map<String, String> entries = opsForHash.entries(redisKey);
+        Integer totalCount = 0;
+        for(Map.Entry<String, String> entry : entries.entrySet()){
+            Cart cart = gson.fromJson(entry.getValue(), Cart.class);
+            totalCount = totalCount + cart.getQuantity();
+        }
+
+        return ResponseVo.success(totalCount);
     }
 }
