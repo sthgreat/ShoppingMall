@@ -4,6 +4,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: jsbbsj
     username: root
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
 #    type:org.apache.commons.dbcp2.BasicDataSource
 
 mybatis:
@@ -17,3 +21,4 @@ server:
   servlet:
     session:
       timeout:
+

@@ -22,6 +22,12 @@ public enum  ResponseEnum {
 
     PRODUCT_OFF_SAIL_OR_DELETE(12,"商品下架或者删除"),
 
+    PRODUCT_NOT_EXIST(13, "商品不存在"),
+
+    STOCK_NOT_ENOUGH(14, "库存不足"),
+
+    CART_PRODUCT_NOT_EXSIST(15, "购物车商品不存在"),
+
     ;
     Integer code;
 
