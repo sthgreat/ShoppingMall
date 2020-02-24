@@ -181,4 +181,12 @@
     from mall_shipping
     where user_id = #{uid,jdbcType=INTEGER}
   </select>
+
+  <select id="selectByUidAndShippingId" parameterType="map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mall_shipping
+    where user_id = #{uid,jdbcType=INTEGER}
+    and id = #{shippingId,jdbcType=INTEGER}
+  </select>
 </mapper>
