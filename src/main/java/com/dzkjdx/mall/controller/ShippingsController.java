@@ -6,6 +6,7 @@ import com.dzkjdx.mall.pojo.User;
 import com.dzkjdx.mall.service.impl.MyShippingServiceImpl;
 import com.dzkjdx.mall.vo.ResponseVo;
 import com.dzkjdx.mall.vo.ShippingAddVo;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,5 +35,13 @@ public class ShippingsController {
                                       HttpSession session){
         User user = (User) session.getAttribute(MallConst.CURRENT_USER);
         return shippingService.update(user.getId(), shippingId, Form);
+    }
+
+    @GetMapping("/shippings")
+    public ResponseVo<PageInfo> listShippings(HttpSession session,
+                                              @RequestParam(value = "pageNum", required = false,defaultValue = "1") Integer pageNum,
+                                              @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize){
+        User user = (User) session.getAttribute(MallConst.CURRENT_USER);
+        return shippingService.list(user.getId(), pageNum, pageSize);
     }
 }

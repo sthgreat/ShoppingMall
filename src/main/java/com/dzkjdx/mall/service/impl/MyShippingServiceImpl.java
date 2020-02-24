@@ -6,9 +6,13 @@ import com.dzkjdx.mall.pojo.Shipping;
 import com.dzkjdx.mall.service.MyShippingService;
 import com.dzkjdx.mall.vo.ResponseVo;
 import com.dzkjdx.mall.vo.ShippingAddVo;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class MyShippingServiceImpl implements MyShippingService {
@@ -52,5 +56,15 @@ public class MyShippingServiceImpl implements MyShippingService {
         }else {
             return new ResponseVo(1, "更新地址失败");
         }
+    }
+
+    @Override
+    public ResponseVo<PageInfo> list(Integer uid, Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<Shipping> shippingList = shippingMapper.selectByUid(uid);
+        PageInfo pageInfo = new PageInfo<>(shippingList);
+        pageInfo.setList(shippingList);
+
+        return ResponseVo.success(pageInfo);
     }
 }
