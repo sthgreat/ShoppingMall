@@ -172,4 +172,19 @@
       #{item.productImage},#{item.currentUnitPrice},#{item.quantity},#{item.totalPrice})
     </foreach>
   </insert>
+
+  <select id="selectByOrderNoSet" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from mall_order_item
+    <where>
+      <if test="orderNoSet.size() > 0">
+        order_no in
+        <foreach collection="orderNoSet" item="item" index="index" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+  </select>
+
 </mapper>

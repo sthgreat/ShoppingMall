@@ -1,9 +1,11 @@
 package com.dzkjdx.mall.dao;
 
 import com.dzkjdx.mall.pojo.Shipping;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public interface ShippingMapper {
@@ -22,4 +24,6 @@ public interface ShippingMapper {
     List<Shipping> selectByUid(Integer uid);
 
     Shipping selectByUidAndShippingId(Integer uid, Integer shippingId);
+
+    List<Shipping> selectByIdSet(@Param("idSet") Set idSet);
 }
