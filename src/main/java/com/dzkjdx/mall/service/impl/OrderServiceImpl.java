@@ -1,22 +1,27 @@
 package com.dzkjdx.mall.service.impl;
 
+import com.dzkjdx.mall.dao.OrderItemMapper;
+import com.dzkjdx.mall.dao.OrderMapper;
 import com.dzkjdx.mall.dao.ProductMapper;
 import com.dzkjdx.mall.dao.ShippingMapper;
+import com.dzkjdx.mall.enums.OrderStatusEnum;
+import com.dzkjdx.mall.enums.PaymentTypeEnum;
+import com.dzkjdx.mall.enums.ProductEnum;
 import com.dzkjdx.mall.enums.ResponseEnum;
-import com.dzkjdx.mall.pojo.Cart;
-import com.dzkjdx.mall.pojo.Product;
-import com.dzkjdx.mall.pojo.Shipping;
+import com.dzkjdx.mall.pojo.*;
 import com.dzkjdx.mall.service.IOrderService;
-import com.dzkjdx.mall.vo.CartVo;
+import com.dzkjdx.mall.vo.OrderItemVo;
 import com.dzkjdx.mall.vo.OrderVo;
 import com.dzkjdx.mall.vo.ResponseVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import com.dzkjdx.mall.service.impl.CartService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class OrderServiceImpl implements IOrderService {
@@ -29,7 +34,14 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     private ProductMapper productMapper;
 
+    @Autowired
+    private OrderMapper orderMapper;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
+
     @Override
+    @Transactional
     public ResponseVo<OrderVo> create(Integer uid, Integer shippingId) {
         //校验收货地址
         Shipping shipping = shippingMapper.selectByUidAndShippingId(uid, shippingId);
@@ -58,6 +70,8 @@ public class OrderServiceImpl implements IOrderService {
             map.put(product.getId(), product);
         }
 
+        List<OrderItem> orderItemList = new ArrayList<>();
+        Long orderNo = generateOrderNo();
         for(Cart cart : cartList){
             //根据product查数据库
             Product product = map.get(cart.getProductId());
@@ -66,23 +80,102 @@ public class OrderServiceImpl implements IOrderService {
                 return ResponseVo.error(ResponseEnum.PRODUCT_NOT_EXIST,
                         "商品不存在， productId= "+cart.getProductId());
             }
+            //商品上下架情况
+            if(!ProductEnum.ON_SAIL.getStatus().equals(product.getStatus())){
+                return ResponseVo.error(ResponseEnum.PRODUCT_OFF_SAIL_OR_DELETE,
+                        "商品不是在售状态，"+product.getName());
+            }
+
             //是否有库存
             if(cart.getQuantity() > product.getStock()){
                 return ResponseVo.error(ResponseEnum.STOCK_NOT_ENOUGH,
                         "商品库存不正确：" + product.getName());
             }
+            OrderItem orderItem = buildOrderItem(uid, orderNo, cart.getQuantity(), product);
+            orderItemList.add(orderItem);
+
+            //减库存
+            product.setStock(product.getStock() - cart.getQuantity());
+            int i = productMapper.updateByPrimaryKeySelective(product);
+            if(i<=0){
+                return ResponseVo.error(ResponseEnum.ERROR);
+            }
         }
 
-
         //计算总价格，只计算被选中的商品
-
         //生成订单入库：order orderitem，事务控制
+        Order order = buildOrder(uid, orderNo, shippingId, orderItemList);
+        int row = orderMapper.insertSelective(order);
+        if(row <= 0){
+            return ResponseVo.error(ResponseEnum.ERROR);
+        }
+        int row2 = orderItemMapper.batchInsert(orderItemList);
+        if(row2<=0){
+            return ResponseVo.error(ResponseEnum.ERROR);
+        }
 
-        //减库存
+        //更新购物车，redis事务（打包命令）
+        for(Cart cart : cartList){
+            cartService.delete(uid, cart.getProductId());
+        }
 
-        //更新购物车
+        //构造OrderVo对象
+        OrderVo orderVo = buildOrderVo(order, orderItemList, shipping);
 
-        //返回前端
-        return null;
+        return ResponseVo.success(orderVo);
+    }
+
+    private OrderVo buildOrderVo(Order order, List<OrderItem> orderItemList, Shipping shipping) {
+        OrderVo orderVo = new OrderVo();
+        BeanUtils.copyProperties(order, orderVo);
+
+        List<OrderItemVo> OrderItemVoList = orderItemList.stream().map(e -> {
+            OrderItemVo orderItemVo = new OrderItemVo();
+            BeanUtils.copyProperties(e, orderItemVo);
+            return orderItemVo;
+        }).collect(Collectors.toList());
+        orderVo.setOrderItemVoList(OrderItemVoList);
+
+        orderVo.setShippingId(shipping.getId());
+        orderVo.setShippingVo(shipping);
+
+        return orderVo;
+    }
+
+    private Order buildOrder(Integer uid, Long orderNo,
+                             Integer shippingId,
+                             List<OrderItem> orderItemList) {
+        Order order = new Order();
+        order.setOrderNo(orderNo);
+        order.setUserId(uid);
+        order.setShippingId(shippingId);
+        BigDecimal payment = new BigDecimal(0);
+        for(OrderItem orderItem : orderItemList){
+            payment = payment.add(orderItem.getTotalPrice());
+        }
+        order.setPayment(payment);
+        order.setPaymentType(PaymentTypeEnum.PAY_ONLINE.getCode());
+        order.setPostage(0);
+        order.setStatus(OrderStatusEnum.NO_PAY.getCode());
+
+        return order;
+    }
+
+    private Long generateOrderNo() {
+        return System.currentTimeMillis()  + new Random().nextInt(3);
+    }
+
+    private OrderItem buildOrderItem(Integer uid, Long orderNo,
+                                     Integer quantity, Product product) {
+        OrderItem item = new OrderItem();
+        item.setUserId(uid);
+        item.setOrderNo(orderNo);
+        item.setProductId(product.getId());
+        item.setProductName(product.getName());
+        item.setProductImage(product.getMainImage());
+        item.setCurrentUnitPrice(product.getPrice());
+        item.setQuantity(quantity);
+        item.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
+        return item;
     }
 }

@@ -1,7 +1,9 @@
 package com.dzkjdx.mall.dao;
 
 import com.dzkjdx.mall.pojo.Order;
+import org.springframework.stereotype.Component;
 
+@Component
 public interface OrderMapper {
     int deleteByPrimaryKey(Integer id);
 
