@@ -7,6 +7,11 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
+  rabbitmq:
+    username: guest
+    password: guest
+    port: 5672
+    addresses: 127.0.0.1
 
 #    type:org.apache.commons.dbcp2.BasicDataSource
 
@@ -17,8 +22,4 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mappers/*.xml
 
-server:
-  servlet:
-    session:
-      timeout:
 
